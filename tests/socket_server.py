@@ -38,7 +38,12 @@ class SocketServer:
         finally:
             for task in tasks:
                 task.cancel()
-            await asyncio.gather(*tasks, return_exceptions=True)
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            for result in results:
+                if isinstance(result, BaseException) and not isinstance(
+                    result, asyncio.CancelledError
+                ):
+                    raise result
 
     async def _reply(self, ws: ServerConnection, frame: dict[str, Any]) -> None:
         if self.handler:
