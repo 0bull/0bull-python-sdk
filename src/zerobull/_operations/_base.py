@@ -7,7 +7,7 @@ import os
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import BinaryIO, Generic, Literal, TypeVar, cast
+from typing import BinaryIO, Generic, Literal, TypeAlias, TypeVar, cast
 
 from pydantic import BaseModel, TypeAdapter
 
@@ -41,6 +41,8 @@ class RestRequest:
     json: Mapping[str, object] | None = None
     data: Mapping[str, object] | None = None
     files: Mapping[str, FileContent] | None = None
+    compact_json: bool = True
+    """Whether the transport drops None values from `json`. Disable to send explicit nulls."""
 
 
 @dataclass(frozen=True)
@@ -64,6 +66,25 @@ class Operation(Generic[T]):
 def compact(mapping: Mapping[str, object] | None) -> dict[str, object]:
     """Drop top-level None values without altering nested payloads."""
     return {key: value for key, value in (mapping or {}).items() if value is not None}
+
+
+class NotGiven:
+    """Sentinel for an omitted keyword argument, distinct from an explicit None."""
+
+    def __bool__(self) -> bool:
+        return False
+
+    def __repr__(self) -> str:
+        return "NOT_GIVEN"
+
+
+NOT_GIVEN = NotGiven()
+NotGivenOr: TypeAlias = T | NotGiven
+
+
+def compact_given(mapping: Mapping[str, object]) -> dict[str, object]:
+    """Drop NOT_GIVEN values, keeping explicit None values."""
+    return {key: value for key, value in mapping.items() if not isinstance(value, NotGiven)}
 
 
 def unwrap(response: RestResponse) -> object:

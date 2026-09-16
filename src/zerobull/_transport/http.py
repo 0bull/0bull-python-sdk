@@ -67,7 +67,11 @@ def _request(options: ClientOptions, rest: RestRequest) -> httpx.Request:
             key: str(value).lower() if isinstance(value, bool) else str(value)
             for key, value in compact(rest.params).items()
         },
-        json=compact(rest.json) if rest.json is not None else None,
+        json=(
+            (compact(rest.json) if rest.compact_json else dict(rest.json))
+            if rest.json is not None
+            else None
+        ),
         files=[*multipart, *files.items()] or None,
         extensions={"timeout": httpx.Timeout(options.timeout).as_dict()},
     )
@@ -85,6 +89,8 @@ def _upload_request(options: ClientOptions, url: str, file: FileContent) -> http
 
 class SyncHTTPTransport:
     """Execute REST operations using an owned or injected httpx client."""
+
+    supports_rest = True
 
     def __init__(self, options: ClientOptions, http_client: httpx.Client | None = None) -> None:
         self.options = options
@@ -128,6 +134,8 @@ class SyncHTTPTransport:
 
 class AsyncHTTPTransport:
     """Execute REST operations using an owned or injected httpx client."""
+
+    supports_rest = True
 
     def __init__(
         self, options: ClientOptions, http_client: httpx.AsyncClient | None = None
