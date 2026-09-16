@@ -209,12 +209,18 @@ All exceptions subclass `ZeroBullError`.
 from zerobull import APIStatusError, ValidationError
 
 try:
-    client.accounts.create(handle="@me", platform="youtube")
+    client.submissions.create(
+        account_id=account.id, video_url="https://example.com/missing.mp4", caption="hi"
+    )
 except ValidationError as e:
-    print(e.errors)  # {"google_email": ["required"]}
+    print(e.errors)
 except APIStatusError as e:
     print(e.status, e.message)
 ```
+
+Arguments the SDK can validate locally, such as a missing `google_email` on a YouTube account,
+raise `ValueError` before any request is sent; only a request that reaches the server can raise
+`ValidationError` or another `APIStatusError`.
 
 A REST `429` is retried automatically, honoring `Retry-After`, up to `max_retries` before
 `RateLimitError` is raised. Nothing else is retried automatically.
