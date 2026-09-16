@@ -52,6 +52,8 @@ class Submissions(SyncResource):
             ValueError: If not exactly one of video/video_url/upload_id is given,
                 or the caption rules for the platform are not met.
         """
+        if video is not None and (video_url is not None or upload_id is not None):
+            raise ValueError("Exactly one of video, video_url, or upload_id is required")
         if video is not None and not self._transport.supports_rest:
             upload_id = self._uploads.upload(video)
             video = None
@@ -135,6 +137,8 @@ class AsyncSubmissions(AsyncResource):
             ValueError: If not exactly one of video/video_url/upload_id is given,
                 or the caption rules for the platform are not met.
         """
+        if video is not None and (video_url is not None or upload_id is not None):
+            raise ValueError("Exactly one of video, video_url, or upload_id is required")
         if video is not None and not self._transport.supports_rest:
             upload_id = await self._uploads.upload(video)
             video = None
