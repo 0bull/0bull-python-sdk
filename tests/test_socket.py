@@ -102,6 +102,16 @@ CASES: list[
     ),
     (
         "accounts",
+        "update",
+        ("acc_1",),
+        {"slot": None},
+        "/app/accounts/update",
+        {"account": "acc_1", "slot": None},
+        ACCOUNT,
+        Account.model_validate(ACCOUNT),
+    ),
+    (
+        "accounts",
         "delete",
         ("acc_1",),
         {},

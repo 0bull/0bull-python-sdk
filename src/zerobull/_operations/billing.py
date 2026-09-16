@@ -14,6 +14,7 @@ from ._base import (
     RestResponse,
     SocketFun,
     parse_model_socket,
+    path_segment,
     require_range,
 )
 
@@ -105,8 +106,6 @@ def request_phone_count(
     if phones is not None:
         require_range("phones", phones, 1, 50)
     if add is not None:
-        if add == 0:
-            raise ValueError("add must not be 0")
         require_range("add", add, -49, 49)
     data = {"phones": phones, "add": add, "accept_terms": accept_terms}
     return Operation(
@@ -120,7 +119,7 @@ def request_phone_count(
 def get_request(request_id: str) -> Operation[BillingRequest]:
     """Get a billing request by id."""
     return Operation(
-        rest=RestRequest("GET", f"/v1/billing/requests/{request_id}"),
+        rest=RestRequest("GET", f"/v1/billing/requests/{path_segment(request_id)}"),
         fun=SocketFun("/app/billing/requests/get", {"request_id": request_id}),
         parse_rest=_parse_rest(BillingRequest),
         parse_socket=parse_model_socket(BillingRequest),

@@ -15,7 +15,6 @@ from ._base import (
     parse_model_socket,
     parse_page,
     parse_page_socket,
-    to_file_content,
 )
 
 
@@ -75,10 +74,6 @@ def create(
     if len(sources) != 1:
         raise ValueError("Exactly one of video, video_url, or upload_id is required")
     _check_caption(caption, platform)
-    files = None
-    if video is not None:
-        name, content, content_type = to_file_content(video)
-        files = {"video": (name, content, content_type)}
     return Operation(
         rest=RestRequest(
             "POST",
@@ -91,7 +86,7 @@ def create(
                 "caption": caption,
                 "draft": draft,
             },
-            files=files,
+            file=("video", video) if video is not None else None,
         ),
         fun=None
         if video is not None

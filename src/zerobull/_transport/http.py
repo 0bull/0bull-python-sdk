@@ -3,15 +3,23 @@
 from __future__ import annotations
 
 import asyncio
+import io
 import math
 import time
-from typing import TypeVar
+from typing import BinaryIO, TypeVar
 
 import httpx
 
 from .._config import ClientOptions
 from .._errors import APIConnectionError, APITimeoutError, error_from_status
-from .._operations._base import FileContent, Operation, RestRequest, RestResponse, compact
+from .._operations._base import (
+    FileContent,
+    Operation,
+    RestRequest,
+    RestResponse,
+    compact,
+    to_file_content,
+)
 from .._version import __version__
 
 T = TypeVar("T")
@@ -44,7 +52,7 @@ def _check(response: httpx.Response) -> RestResponse:
     return RestResponse(response.status_code, response.headers, response.content)
 
 
-def _request(options: ClientOptions, rest: RestRequest) -> httpx.Request:
+def _request(options: ClientOptions, rest: RestRequest) -> tuple[httpx.Request, BinaryIO | None]:
     headers = {
         "Authorization": f"Bearer {options.api_token}",
         "Accept": "application/json",
@@ -55,11 +63,18 @@ def _request(options: ClientOptions, rest: RestRequest) -> httpx.Request:
         for key, value in compact(rest.data).items()
     }
     files = dict(rest.files or {})
+    opened: BinaryIO | None = None
+    if rest.file is not None:
+        field, source = rest.file
+        name, content, content_type = to_file_content(source)
+        files[field] = (name, content, content_type)
+        if content is not source and isinstance(content, io.IOBase):
+            opened = content
     # A file-free submission still requires multipart form encoding.
     multipart = (
         [(key, (None, value)) for key, value in data.items()] if rest.data is not None else []
     )
-    return httpx.Request(
+    request = httpx.Request(
         rest.method,
         f"{options.base_url}{rest.path}",
         headers=headers,
@@ -75,6 +90,7 @@ def _request(options: ClientOptions, rest: RestRequest) -> httpx.Request:
         files=[*multipart, *files.items()] or None,
         extensions={"timeout": httpx.Timeout(options.timeout).as_dict()},
     )
+    return request, opened
 
 
 def _upload_request(options: ClientOptions, url: str, file: FileContent) -> httpx.Request:
@@ -118,7 +134,12 @@ class SyncHTTPTransport:
         if operation.rest is None:
             name = operation.fun.fun if operation.fun else "Operation"
             raise NotImplementedError(f"{name} is not available over HTTP")
-        response = self._send(_request(self.options, operation.rest))
+        request, opened = _request(self.options, operation.rest)
+        try:
+            response = self._send(request)
+        finally:
+            if opened is not None:
+                opened.close()
         return operation.parse_rest(_check(response))
 
     def upload(self, url: str, file: FileContent) -> object:
@@ -165,7 +186,12 @@ class AsyncHTTPTransport:
         if operation.rest is None:
             name = operation.fun.fun if operation.fun else "Operation"
             raise NotImplementedError(f"{name} is not available over HTTP")
-        response = await self._send(_request(self.options, operation.rest))
+        request, opened = _request(self.options, operation.rest)
+        try:
+            response = await self._send(request)
+        finally:
+            if opened is not None:
+                opened.close()
         return operation.parse_rest(_check(response))
 
     async def upload(self, url: str, file: FileContent) -> object:

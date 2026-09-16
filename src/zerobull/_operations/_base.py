@@ -8,6 +8,7 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import BinaryIO, Generic, Literal, TypeAlias, TypeVar, cast
+from urllib.parse import quote
 
 from pydantic import BaseModel, TypeAdapter
 
@@ -16,6 +17,7 @@ from .._pagination import PageData
 T = TypeVar("T")
 M = TypeVar("M", bound=BaseModel)
 FileContent = bytes | BinaryIO | tuple[str, bytes | BinaryIO, str]
+FileSource = str | os.PathLike[str] | bytes | BinaryIO
 
 
 @dataclass(frozen=True)
@@ -41,6 +43,8 @@ class RestRequest:
     json: Mapping[str, object] | None = None
     data: Mapping[str, object] | None = None
     files: Mapping[str, FileContent] | None = None
+    file: tuple[str, FileSource] | None = None
+    """A field name and a source to open lazily at send time, closing it if opened from a path."""
     compact_json: bool = True
     """Whether the transport drops None values from `json`. Disable to send explicit nulls."""
 
@@ -51,6 +55,8 @@ class SocketFun:
 
     fun: str
     data: Mapping[str, object] | None = None
+    compact: bool = True
+    """Whether the transport drops None values from `data`. Disable to send explicit nulls."""
 
 
 @dataclass(frozen=True)
@@ -66,6 +72,11 @@ class Operation(Generic[T]):
 def compact(mapping: Mapping[str, object] | None) -> dict[str, object]:
     """Drop top-level None values without altering nested payloads."""
     return {key: value for key, value in (mapping or {}).items() if value is not None}
+
+
+def path_segment(value: str) -> str:
+    """Percent-encode a value so it stays a single REST path segment."""
+    return quote(value, safe="")
 
 
 class NotGiven:
@@ -154,9 +165,7 @@ def require_range(name: str, value: float | None, low: float, high: float) -> No
         raise ValueError(f"{name} must be between {low} and {high}")
 
 
-def to_file_content(
-    video: str | os.PathLike[str] | bytes | BinaryIO,
-) -> tuple[str, BinaryIO | bytes, str]:
+def to_file_content(video: FileSource) -> tuple[str, BinaryIO | bytes, str]:
     """Prepare a video; caller owns any stream opened from a path."""
     if isinstance(video, (str, os.PathLike)):
         path = Path(video)

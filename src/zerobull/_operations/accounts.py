@@ -14,6 +14,7 @@ from ._base import (
     parse_model_socket,
     parse_page,
     parse_page_socket,
+    path_segment,
 )
 
 
@@ -32,7 +33,7 @@ def list(
 def get(account_id: str) -> Operation[Account]:
     """Get one account by id."""
     return Operation(
-        rest=RestRequest("GET", f"/v1/accounts/{account_id}"),
+        rest=RestRequest("GET", f"/v1/accounts/{path_segment(account_id)}"),
         fun=SocketFun("/app/accounts/get", {"account": account_id}),
         parse_rest=parse_model(Account),
         parse_socket=parse_model_socket(Account),
@@ -93,8 +94,10 @@ def update(
     if not fields:
         raise ValueError("At least one field is required to update an account")
     return Operation(
-        rest=RestRequest("PUT", f"/v1/accounts/{account_id}", json=fields, compact_json=False),
-        fun=SocketFun("/app/accounts/update", {"account": account_id, **fields}),
+        rest=RestRequest(
+            "PUT", f"/v1/accounts/{path_segment(account_id)}", json=fields, compact_json=False
+        ),
+        fun=SocketFun("/app/accounts/update", {"account": account_id, **fields}, compact=False),
         parse_rest=parse_model(Account),
         parse_socket=parse_model_socket(Account),
     )
@@ -103,7 +106,7 @@ def update(
 def delete(account_id: str) -> Operation[None]:
     """Delete an account."""
     return Operation(
-        rest=RestRequest("DELETE", f"/v1/accounts/{account_id}"),
+        rest=RestRequest("DELETE", f"/v1/accounts/{path_segment(account_id)}"),
         fun=SocketFun("/app/accounts/delete", {"account": account_id}),
         parse_rest=no_content,
         parse_socket=no_content,

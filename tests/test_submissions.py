@@ -1,11 +1,12 @@
-from typing import Any
+from pathlib import Path
+from typing import Any, BinaryIO, cast
 
 import httpx
 import pytest
 
 from tests.conftest import MockAPI
 from zerobull._config import ClientOptions
-from zerobull._errors import WaitTimeoutError
+from zerobull._errors import ValidationError, WaitTimeoutError
 from zerobull._operations import submissions as submissions_ops
 from zerobull._operations._base import Operation, parse_model_socket
 from zerobull._transport.http import AsyncHTTPTransport, SyncHTTPTransport
@@ -117,7 +118,8 @@ def test_create_op_video_disables_socket() -> None:
     op = submissions_ops.create(account_id="acc_1", video=b"clip", caption="hi")
     assert op.fun is None
     assert op.rest is not None
-    assert op.rest.files == {"video": ("video", b"clip", "application/octet-stream")}
+    assert op.rest.files is None
+    assert op.rest.file == ("video", b"clip")
 
     op2 = submissions_ops.create(account_id="acc_1", upload_id="up_1", caption="hi")
     assert op2.fun is not None
@@ -159,6 +161,65 @@ def test_create_video_file(mock_api: MockAPI) -> None:
             "content_type": "application/octet-stream",
         }
     }
+
+
+@pytest.fixture
+def tracked_opens(monkeypatch: pytest.MonkeyPatch) -> list[BinaryIO]:
+    """Record every file handle opened via Path.open("rb") for the test's duration."""
+    opened: list[BinaryIO] = []
+    original_open = Path.open
+
+    def spy_open(self: Path, mode: str = "r", *args: Any, **kwargs: Any) -> BinaryIO:
+        handle = cast(BinaryIO, original_open(self, mode, *args, **kwargs))
+        opened.append(handle)
+        return handle
+
+    monkeypatch.setattr(Path, "open", spy_open)
+    return opened
+
+
+def test_create_video_path_closes_on_success(
+    mock_api: MockAPI, tmp_path: Path, tracked_opens: list[BinaryIO]
+) -> None:
+    video = tmp_path / "clip.mp4"
+    video.write_bytes(b"clip")
+    mock_api.add("POST", "/api/v1/submissions", json={"data": SUBMISSION}, status=201)
+    mock_api.client.submissions.create(account_id="acc_1", video=video, caption="hi")
+    assert tracked_opens and all(handle.closed for handle in tracked_opens)
+
+
+def test_create_video_path_closes_on_error(
+    mock_api: MockAPI, tmp_path: Path, tracked_opens: list[BinaryIO]
+) -> None:
+    video = tmp_path / "clip.mp4"
+    video.write_bytes(b"clip")
+    mock_api.add("POST", "/api/v1/submissions", json={"message": "bad", "errors": {}}, status=422)
+    with pytest.raises(ValidationError):
+        mock_api.client.submissions.create(account_id="acc_1", video=video, caption="hi")
+    assert tracked_opens and all(handle.closed for handle in tracked_opens)
+
+
+def test_socket_create_with_video_path_closes(
+    mock_api: MockAPI, tmp_path: Path, tracked_opens: list[BinaryIO]
+) -> None:
+    video = tmp_path / "clip.mp4"
+    video.write_bytes(b"clip")
+    mock_api.add("POST", "/signed", json={"ok": True})
+    fake = _FakeSocketTransport()
+    resource = Submissions(fake, mock_api.client._http)
+    resource.create(account_id="acc_1", video=video, caption="hi")
+    assert tracked_opens and all(handle.closed for handle in tracked_opens)
+
+
+@pytest.mark.anyio
+async def test_async_create_video_path_closes(
+    mock_api: MockAPI, tmp_path: Path, tracked_opens: list[BinaryIO]
+) -> None:
+    video = tmp_path / "clip.mp4"
+    video.write_bytes(b"clip")
+    mock_api.add("POST", "/api/v1/submissions", json={"data": SUBMISSION}, status=201)
+    await mock_api.async_client.submissions.create(account_id="acc_1", video=video, caption="hi")
+    assert tracked_opens and all(handle.closed for handle in tracked_opens)
 
 
 @pytest.mark.anyio

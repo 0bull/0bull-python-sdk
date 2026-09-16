@@ -30,7 +30,7 @@ from .._errors import (
     error_from_status,
 )
 from .._operations import session
-from .._operations._base import Operation, compact
+from .._operations._base import Operation, SocketFun, compact
 from ..models.events import BillingRequestEvent, Event, RunEvent, SubmissionEvent
 from ..models.session import ControllerSession
 from .http import AsyncHTTPTransport, SyncHTTPTransport
@@ -69,6 +69,10 @@ def _event(frame: dict[str, object]) -> Event | None:
     except ValidationError:
         pass
     return None
+
+
+def _fun_data(fun: SocketFun) -> dict[str, object]:
+    return compact(fun.data) if fun.compact else dict(fun.data or {})
 
 
 def _check_operation(op: Operation[T]) -> None:
@@ -244,7 +248,7 @@ class SyncSocketTransport:
             self._pending[msgid] = future
         try:
             frame = json.dumps(
-                {"fun": operation.fun.fun, "msgid": msgid, "data": compact(operation.fun.data)}
+                {"fun": operation.fun.fun, "msgid": msgid, "data": _fun_data(operation.fun)}
             )
             if not self._send_lock.acquire(timeout=max(0, deadline - time.monotonic())):
                 raise APITimeoutError("Socket call timed out")
@@ -412,7 +416,7 @@ class AsyncSocketTransport:
         self._counter += 1
         msgid = str(self._counter)
         frame = json.dumps(
-            {"fun": operation.fun.fun, "msgid": msgid, "data": compact(operation.fun.data)}
+            {"fun": operation.fun.fun, "msgid": msgid, "data": _fun_data(operation.fun)}
         )
         future: asyncio.Future[dict[str, object]] = asyncio.get_running_loop().create_future()
         self._pending[msgid] = future
