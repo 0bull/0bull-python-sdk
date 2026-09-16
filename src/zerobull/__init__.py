@@ -19,23 +19,31 @@ from ._errors import (
     ZeroBullError,
 )
 from ._pagination import AsyncPage, Page
+from ._socket import AsyncSocket, Socket
 from ._version import __version__
+from .models.events import BillingRequestEvent, Event, RunEvent, SubmissionEvent
 
 __all__ = [
     "APIConnectionError",
     "APIStatusError",
     "APITimeoutError",
     "AsyncPage",
+    "AsyncSocket",
     "AsyncZeroBull",
     "AuthenticationError",
     "BadRequestError",
+    "BillingRequestEvent",
     "ConflictError",
+    "Event",
     "InternalServerError",
     "NotFoundError",
     "Page",
     "PermissionDeniedError",
     "RateLimitError",
+    "RunEvent",
+    "Socket",
     "SocketClosedError",
+    "SubmissionEvent",
     "UnavailableError",
     "ValidationError",
     "WaitTimeoutError",
