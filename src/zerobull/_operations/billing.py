@@ -2,32 +2,18 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping, Sequence
-from typing import TypeVar
-
-from pydantic import BaseModel
+from collections.abc import Mapping, Sequence
 
 from ..models.billing import BillingRequest, BillingSummary, PhoneCountChange, Rental, RentalItem
 from ._base import (
     Operation,
     RestRequest,
-    RestResponse,
     SocketFun,
     parse_model_socket,
+    parse_model_unwrapped,
     path_segment,
     require_range,
 )
-
-M = TypeVar("M", bound=BaseModel)
-
-
-def _parse_rest(model_cls: type[M]) -> Callable[[RestResponse], M]:
-    """Build a parser for an unwrapped REST model."""
-
-    def parse(response: RestResponse) -> M:
-        return model_cls.model_validate(response.json())
-
-    return parse
 
 
 def _require_accept_terms(accept_terms: bool) -> None:
@@ -59,7 +45,7 @@ def summary() -> Operation[BillingSummary]:
     return Operation(
         rest=RestRequest("GET", "/v1/billing"),
         fun=SocketFun("/app/billing/summary"),
-        parse_rest=_parse_rest(BillingSummary),
+        parse_rest=parse_model_unwrapped(BillingSummary),
         parse_socket=parse_model_socket(BillingSummary),
     )
 
@@ -87,7 +73,7 @@ def start_rental(
     return Operation(
         rest=RestRequest("POST", "/v1/billing/rentals", json=data),
         fun=SocketFun("/app/billing/rentals", data),
-        parse_rest=_parse_rest(Rental),
+        parse_rest=parse_model_unwrapped(Rental),
         parse_socket=parse_model_socket(Rental),
     )
 
@@ -111,7 +97,7 @@ def request_phone_count(
     return Operation(
         rest=RestRequest("POST", "/v1/billing/requests", json=data),
         fun=SocketFun("/app/billing/requests", data),
-        parse_rest=_parse_rest(PhoneCountChange),
+        parse_rest=parse_model_unwrapped(PhoneCountChange),
         parse_socket=parse_model_socket(PhoneCountChange),
     )
 
@@ -121,6 +107,6 @@ def get_request(request_id: str) -> Operation[BillingRequest]:
     return Operation(
         rest=RestRequest("GET", f"/v1/billing/requests/{path_segment(request_id)}"),
         fun=SocketFun("/app/billing/requests/get", {"request_id": request_id}),
-        parse_rest=_parse_rest(BillingRequest),
+        parse_rest=parse_model_unwrapped(BillingRequest),
         parse_socket=parse_model_socket(BillingRequest),
     )

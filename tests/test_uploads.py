@@ -3,15 +3,10 @@ from pathlib import Path
 import pytest
 
 from tests.conftest import MockAPI
+from tests.test_submissions import UPLOAD
 from zerobull._operations import uploads as uploads_ops
 from zerobull._operations._base import parse_model_socket
 from zerobull.models.uploads import UploadURL
-
-UPLOAD = {
-    "upload_id": "up_1",
-    "upload_url": "https://upload.example/signed",
-    "expires_at": "2024-01-01T00:00:00Z",
-}
 
 
 def test_create_op() -> None:

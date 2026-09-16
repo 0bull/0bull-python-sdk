@@ -107,11 +107,7 @@ class AsyncSubmissions(AsyncResource):
     ) -> AsyncPage[Submission]:
         """List video submissions, newest first."""
         data = await self._execute(submissions.list(page=page, platform=platform))
-
-        async def fetch(next_page: int) -> AsyncPage[Submission]:
-            return await self.list(page=next_page, platform=platform)
-
-        return AsyncPage(data, fetch)
+        return AsyncPage(data, lambda next_page: self.list(page=next_page, platform=platform))
 
     async def get(self, submission_id: int) -> Submission:
         """Get one submission by id."""

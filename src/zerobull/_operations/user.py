@@ -6,4 +6,4 @@ from ._base import Operation, RestRequest, parse_model
 
 def get() -> Operation[User]:
     """Get the authenticated user."""
-    return Operation(RestRequest("GET", "/user"), None, parse_model(User))
+    return Operation(rest=RestRequest("GET", "/user"), fun=None, parse_rest=parse_model(User))

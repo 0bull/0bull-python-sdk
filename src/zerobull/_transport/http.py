@@ -114,7 +114,7 @@ class SyncHTTPTransport:
         self._client = http_client if http_client is not None else httpx.Client()
 
     def _send(self, request: httpx.Request) -> httpx.Response:
-        # ponytail: buffer videos for replay; use spooled files if upload memory becomes a limit.
+        # Buffer the body up front so a 429 retry can replay it.
         request.read()
         attempts = 0
         while True:
@@ -166,7 +166,7 @@ class AsyncHTTPTransport:
         self._client = http_client if http_client is not None else httpx.AsyncClient()
 
     async def _send(self, request: httpx.Request) -> httpx.Response:
-        # ponytail: buffer videos for replay; use spooled files if upload memory becomes a limit.
+        # Buffer the body up front so a 429 retry can replay it.
         request.read()
         attempts = 0
         while True:

@@ -76,11 +76,7 @@ class AsyncAccounts(AsyncResource):
     ) -> AsyncPage[Account]:
         """List posting accounts, newest first."""
         data = await self._execute(accounts.list(page=page, platform=platform))
-
-        async def fetch(next_page: int) -> AsyncPage[Account]:
-            return await self.list(page=next_page, platform=platform)
-
-        return AsyncPage(data, fetch)
+        return AsyncPage(data, lambda next_page: self.list(page=next_page, platform=platform))
 
     async def get(self, account_id: str) -> Account:
         """Get one account by id."""
