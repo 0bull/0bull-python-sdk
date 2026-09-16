@@ -7,6 +7,7 @@ from types import TracebackType
 import httpx
 
 from ._config import ClientOptions
+from ._socket import AsyncSocket, Socket
 from ._transport.http import AsyncHTTPTransport, SyncHTTPTransport
 from .resources.accounts import Accounts, AsyncAccounts
 from .resources.billing import AsyncBilling, Billing
@@ -40,6 +41,23 @@ class ZeroBull:
         self.runs = Runs(self._http, self._http)
         self.billing = Billing(self._http, self._http)
         self.session = Session(self._http, self._http)
+
+    def socket(
+        self,
+        *,
+        call_timeout: float = 60,
+        auto_reconnect: bool = True,
+        max_reconnect_attempts: int = 5,
+        ping_interval: float | None = 20,
+    ) -> Socket:
+        """Create an unconnected socket; enter it or call connect() to start."""
+        return Socket(
+            self._http,
+            call_timeout=call_timeout,
+            auto_reconnect=auto_reconnect,
+            max_reconnect_attempts=max_reconnect_attempts,
+            ping_interval=ping_interval,
+        )
 
     def close(self) -> None:
         """Release connections owned by this client."""
@@ -79,6 +97,23 @@ class AsyncZeroBull:
         self.runs = AsyncRuns(self._http, self._http)
         self.billing = AsyncBilling(self._http, self._http)
         self.session = AsyncSession(self._http, self._http)
+
+    def socket(
+        self,
+        *,
+        call_timeout: float = 60,
+        auto_reconnect: bool = True,
+        max_reconnect_attempts: int = 5,
+        ping_interval: float | None = 20,
+    ) -> AsyncSocket:
+        """Create an unconnected socket; enter it or call connect() to start."""
+        return AsyncSocket(
+            self._http,
+            call_timeout=call_timeout,
+            auto_reconnect=auto_reconnect,
+            max_reconnect_attempts=max_reconnect_attempts,
+            ping_interval=ping_interval,
+        )
 
     async def aclose(self) -> None:
         """Release connections owned by this client."""
