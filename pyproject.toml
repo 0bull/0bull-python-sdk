@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "0bull"
-version = "0.1.0"
+dynamic = ["version"]
 requires-python = ">=3.10"
 license = "MIT"
 readme = "README.md"
@@ -31,6 +31,9 @@ Changelog = "https://github.com/0bull/0bull-python-sdk/blob/main/CHANGELOG.md"
 
 [dependency-groups]
 dev = ["pytest", "pytest-cov", "mypy", "ruff"]
+
+[tool.hatch.version]
+path = "src/zerobull/_version.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/zerobull"]

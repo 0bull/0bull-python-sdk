@@ -8,7 +8,6 @@ resolution-markers = [
 
 [[package]]
 name = "0bull"
-version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "httpx" },
