@@ -317,6 +317,41 @@ async def test_async_socket_create_with_video_uploads_first(mock_api: MockAPI) -
     assert create_fun.data["upload_id"] == "up_1"
 
 
+def test_socket_create_with_video_and_upload_id_raises_before_upload(mock_api: MockAPI) -> None:
+    fake = _FakeSocketTransport()
+    resource = Submissions(fake, mock_api.client._http)
+
+    with pytest.raises(ValueError, match="Exactly one"):
+        resource.create(account_id="acc_1", video=b"clip", upload_id="up_1", caption="hi")
+
+    assert fake.executed == []
+
+
+def test_socket_create_with_video_and_video_url_raises_before_upload(mock_api: MockAPI) -> None:
+    fake = _FakeSocketTransport()
+    resource = Submissions(fake, mock_api.client._http)
+
+    with pytest.raises(ValueError, match="Exactly one"):
+        resource.create(
+            account_id="acc_1", video=b"clip", video_url="https://x/v.mp4", caption="hi"
+        )
+
+    assert fake.executed == []
+
+
+@pytest.mark.anyio
+async def test_async_socket_create_with_video_and_upload_id_raises_before_upload(
+    mock_api: MockAPI,
+) -> None:
+    fake = _AsyncFakeSocketTransport()
+    resource = AsyncSubmissions(fake, mock_api.async_client._http)
+
+    with pytest.raises(ValueError, match="Exactly one"):
+        await resource.create(account_id="acc_1", video=b"clip", upload_id="up_1", caption="hi")
+
+    assert fake.executed == []
+
+
 def test_wait_success(no_sleep: list[float]) -> None:
     calls = {"n": 0}
 
