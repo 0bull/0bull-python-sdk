@@ -10,10 +10,14 @@ T = TypeVar("T")
 class SyncTransport(Protocol):
     """Synchronous operation executor."""
 
+    supports_rest: bool
+
     def execute(self, operation: Operation[T]) -> T: ...
 
 
 class AsyncTransport(Protocol):
     """Asynchronous operation executor."""
+
+    supports_rest: bool
 
     async def execute(self, operation: Operation[T]) -> T: ...
