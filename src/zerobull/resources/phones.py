@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from typing import Any
 
 from .._operations import phones
 from .._resource import AsyncResource, SyncResource
@@ -63,7 +62,7 @@ class Phones(SyncResource):
         *,
         workflow: str | None = None,
         params: MacroParams | None = None,
-        steps: Sequence[Mapping[str, Any]] | None = None,
+        steps: Sequence[Mapping[str, object]] | None = None,
     ) -> Run:
         """Queue one workflow with scalar params or up to 200 action steps."""
         return self._execute(phones.run_macro(slot, workflow=workflow, params=params, steps=steps))
@@ -129,7 +128,7 @@ class AsyncPhones(AsyncResource):
         *,
         workflow: str | None = None,
         params: MacroParams | None = None,
-        steps: Sequence[Mapping[str, Any]] | None = None,
+        steps: Sequence[Mapping[str, object]] | None = None,
     ) -> Run:
         """Queue one workflow with scalar params or up to 200 action steps."""
         return await self._execute(

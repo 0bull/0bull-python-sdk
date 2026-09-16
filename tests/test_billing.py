@@ -173,6 +173,13 @@ def test_request_phone_count_applied(mock_api: MockAPI) -> None:
     assert record["json"] == {"phones": 5, "accept_terms": True}
 
 
+def test_request_phone_count_allows_zero_add(mock_api: MockAPI) -> None:
+    mock_api.add("POST", "/api/v1/billing/requests", json=CHANGE_APPLIED, status=201)
+    mock_api.client.billing.request_phone_count(accept_terms=True, add=0)
+    record = mock_api.records[-1]
+    assert record["json"] == {"add": 0, "accept_terms": True}
+
+
 @pytest.mark.anyio
 async def test_request_phone_count_pending(mock_api: MockAPI) -> None:
     mock_api.add("POST", "/api/v1/billing/requests", json=CHANGE_PENDING, status=202)
@@ -197,7 +204,6 @@ async def test_request_phone_count_pending(mock_api: MockAPI) -> None:
         (True, 5, 1, "exactly one"),
         (True, 0, None, "phones"),
         (True, 51, None, "phones"),
-        (True, None, 0, "add"),
         (True, None, 50, "add"),
         (True, None, -50, "add"),
     ],

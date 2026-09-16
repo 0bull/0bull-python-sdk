@@ -38,13 +38,21 @@ def test_model_validation_and_unknown_fields() -> None:
 def test_operation_helpers(tmp_path: Path) -> None:
     import io
 
-    from zerobull._operations._base import compact, require_range, to_file_content, unwrap
+    from zerobull._operations._base import (
+        compact,
+        path_segment,
+        require_range,
+        to_file_content,
+        unwrap,
+    )
 
     assert compact({"none": None, "false": False, "nested": {"none": None}}) == {
         "false": False,
         "nested": {"none": None},
     }
     assert compact(None) == {}
+    assert path_segment("acc_1") == "acc_1"
+    assert path_segment("weird/id?x") == "weird%2Fid%3Fx"
     for value in (None, 0, 1):
         require_range("x", value, 0, 1)
     for invalid in (-1, 2, float("nan")):

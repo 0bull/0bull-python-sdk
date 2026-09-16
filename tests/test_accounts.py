@@ -76,6 +76,12 @@ async def test_async_get(mock_api: MockAPI) -> None:
     assert (await mock_api.async_client.accounts.get("acc_1")).id == "acc_1"
 
 
+def test_get_encodes_path_segment() -> None:
+    op = accounts_ops.get("weird/id?x")
+    assert op.rest is not None
+    assert op.rest.path == "/v1/accounts/weird%2Fid%3Fx"
+
+
 def test_create_validation() -> None:
     with pytest.raises(ValueError, match="slot"):
         accounts_ops.create(handle="@me")
@@ -128,7 +134,9 @@ def test_update_op_sends_only_given_fields() -> None:
     op = accounts_ops.update("acc_1", slot=None)
     assert op.rest is not None
     assert op.rest.json == {"slot": None} and op.rest.compact_json is False
-    assert op.fun is not None and op.fun.data == {"account": "acc_1", "slot": None}
+    assert op.fun is not None
+    assert op.fun.data == {"account": "acc_1", "slot": None}
+    assert op.fun.compact is False
 
     op2 = accounts_ops.update("acc_1", handle="new")
     assert op2.rest is not None and op2.rest.json == {"handle": "new"}

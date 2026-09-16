@@ -5,7 +5,7 @@ from __future__ import annotations
 import base64
 import builtins
 from collections.abc import Mapping, Sequence
-from typing import Any, get_args
+from typing import get_args
 
 from pydantic import TypeAdapter
 
@@ -19,6 +19,7 @@ from ._base import (
     no_content,
     parse_model,
     parse_model_socket,
+    path_segment,
     require_range,
     unwrap,
 )
@@ -39,7 +40,9 @@ def snapshot(slot: str, *, width: int | None = None) -> Operation[bytes]:
     """Capture a JPEG, optionally resized to width (120-2000)."""
     require_range("width", width, 120, 2000)
     return Operation(
-        RestRequest("GET", f"/v1/phones/{slot}/snapshot", params=compact({"width": width})),
+        RestRequest(
+            "GET", f"/v1/phones/{path_segment(slot)}/snapshot", params=compact({"width": width})
+        ),
         SocketFun("/app/phones/snapshot", compact({"slot": slot, "width": width})),
         lambda response: response.content,
         lambda data: base64.b64decode(
@@ -56,7 +59,9 @@ def ocr(slot: str, *, width: int | None = None) -> Operation[str]:
     """Read on-screen text, optionally resizing to width (120-2000)."""
     require_range("width", width, 120, 2000)
     return Operation(
-        RestRequest("GET", f"/v1/phones/{slot}/ocr", params=compact({"width": width})),
+        RestRequest(
+            "GET", f"/v1/phones/{path_segment(slot)}/ocr", params=compact({"width": width})
+        ),
         SocketFun("/app/phones/ocr", compact({"slot": slot, "width": width})),
         lambda response: _text(response.json()),
         _text,
@@ -66,7 +71,7 @@ def ocr(slot: str, *, width: int | None = None) -> Operation[str]:
 def _input(slot: str, body: Mapping[str, object]) -> Operation[None]:
     body = compact(body)
     return Operation(
-        RestRequest("POST", f"/v1/phones/{slot}/input", json=body),
+        RestRequest("POST", f"/v1/phones/{path_segment(slot)}/input", json=body),
         SocketFun("/app/phones/input", {"slot": slot, **body}),
         no_content,
         no_content,
@@ -107,7 +112,7 @@ def type(slot: str, text: str) -> Operation[None]:
 def _run(slot: str, suffix: str, body: Mapping[str, object]) -> Operation[Run]:
     body = compact(body)
     return Operation(
-        RestRequest("POST", f"/v1/phones/{slot}/{suffix}", json=body),
+        RestRequest("POST", f"/v1/phones/{path_segment(slot)}/{suffix}", json=body),
         SocketFun(f"/app/phones/{suffix}", {"slot": slot, **body}),
         parse_model(Run),
         parse_model_socket(Run),
@@ -147,7 +152,7 @@ def run_macro(
     *,
     workflow: str | None = None,
     params: MacroParams | None = None,
-    steps: Sequence[Mapping[str, Any]] | None = None,
+    steps: Sequence[Mapping[str, object]] | None = None,
 ) -> Operation[Run]:
     """Queue exactly one workflow (with scalar params) or up to 200 steps."""
     if (workflow is None) == (steps is None):
