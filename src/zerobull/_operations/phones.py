@@ -29,10 +29,10 @@ def list() -> Operation[builtins.list[Phone]]:
     """List visible phones."""
     parse = TypeAdapter(builtins.list[Phone]).validate_python
     return Operation(
-        RestRequest("GET", "/v1/phones"),
-        SocketFun("/app/phones/list", {}),
-        lambda response: parse(unwrap(response)),
-        parse,
+        rest=RestRequest("GET", "/v1/phones"),
+        fun=SocketFun("/app/phones/list", {}),
+        parse_rest=lambda response: parse(unwrap(response)),
+        parse_socket=parse,
     )
 
 
@@ -40,12 +40,12 @@ def snapshot(slot: str, *, width: int | None = None) -> Operation[bytes]:
     """Capture a JPEG, optionally resized to width (120-2000)."""
     require_range("width", width, 120, 2000)
     return Operation(
-        RestRequest(
+        rest=RestRequest(
             "GET", f"/v1/phones/{path_segment(slot)}/snapshot", params=compact({"width": width})
         ),
-        SocketFun("/app/phones/snapshot", compact({"slot": slot, "width": width})),
-        lambda response: response.content,
-        lambda data: base64.b64decode(
+        fun=SocketFun("/app/phones/snapshot", compact({"slot": slot, "width": width})),
+        parse_rest=lambda response: response.content,
+        parse_socket=lambda data: base64.b64decode(
             TypeAdapter(dict[str, str]).validate_python(data)["image"], validate=True
         ),
     )
@@ -59,22 +59,22 @@ def ocr(slot: str, *, width: int | None = None) -> Operation[str]:
     """Read on-screen text, optionally resizing to width (120-2000)."""
     require_range("width", width, 120, 2000)
     return Operation(
-        RestRequest(
+        rest=RestRequest(
             "GET", f"/v1/phones/{path_segment(slot)}/ocr", params=compact({"width": width})
         ),
-        SocketFun("/app/phones/ocr", compact({"slot": slot, "width": width})),
-        lambda response: _text(response.json()),
-        _text,
+        fun=SocketFun("/app/phones/ocr", compact({"slot": slot, "width": width})),
+        parse_rest=lambda response: _text(response.json()),
+        parse_socket=_text,
     )
 
 
 def _input(slot: str, body: Mapping[str, object]) -> Operation[None]:
     body = compact(body)
     return Operation(
-        RestRequest("POST", f"/v1/phones/{path_segment(slot)}/input", json=body),
-        SocketFun("/app/phones/input", {"slot": slot, **body}),
-        no_content,
-        no_content,
+        rest=RestRequest("POST", f"/v1/phones/{path_segment(slot)}/input", json=body),
+        fun=SocketFun("/app/phones/input", {"slot": slot, **body}),
+        parse_rest=no_content,
+        parse_socket=no_content,
     )
 
 
@@ -112,10 +112,10 @@ def type(slot: str, text: str) -> Operation[None]:
 def _run(slot: str, suffix: str, body: Mapping[str, object]) -> Operation[Run]:
     body = compact(body)
     return Operation(
-        RestRequest("POST", f"/v1/phones/{path_segment(slot)}/{suffix}", json=body),
-        SocketFun(f"/app/phones/{suffix}", {"slot": slot, **body}),
-        parse_model(Run),
-        parse_model_socket(Run),
+        rest=RestRequest("POST", f"/v1/phones/{path_segment(slot)}/{suffix}", json=body),
+        fun=SocketFun(f"/app/phones/{suffix}", {"slot": slot, **body}),
+        parse_rest=parse_model(Run),
+        parse_socket=parse_model_socket(Run),
     )
 
 

@@ -1,7 +1,7 @@
 """Uploads operations."""
 
 from ..models.uploads import UploadURL
-from ._base import Operation, RestRequest, SocketFun, parse_model_socket
+from ._base import Operation, RestRequest, SocketFun, parse_model_socket, parse_model_unwrapped
 
 
 def create() -> Operation[UploadURL]:
@@ -12,6 +12,6 @@ def create() -> Operation[UploadURL]:
     return Operation(
         rest=RestRequest("POST", "/v1/uploads"),
         fun=SocketFun("/app/submissions/upload-url"),
-        parse_rest=lambda response: UploadURL.model_validate(response.json()),
+        parse_rest=parse_model_unwrapped(UploadURL),
         parse_socket=parse_model_socket(UploadURL),
     )

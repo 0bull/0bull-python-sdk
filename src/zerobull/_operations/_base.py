@@ -111,6 +111,11 @@ def parse_model(model_cls: type[M]) -> Callable[[RestResponse], M]:
     return lambda response: model_cls.model_validate(unwrap(response))
 
 
+def parse_model_unwrapped(model_cls: type[M]) -> Callable[[RestResponse], M]:
+    """Build a parser for a REST model with no data envelope."""
+    return lambda response: model_cls.model_validate(response.json())
+
+
 def parse_model_socket(model_cls: type[M]) -> Callable[[object], M]:
     """Build a parser for an unwrapped socket model."""
     return model_cls.model_validate
