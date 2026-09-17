@@ -14,3 +14,8 @@ htmlcov/
 coverage.xml
 .env
 .env.*
+
+# Local working files from the agent-skills process
+SPEC.md
+SPEC-*.md
+tasks/

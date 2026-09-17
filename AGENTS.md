@@ -7,7 +7,22 @@ Python client for the 0bull API.
 
 The API docs are the contract. When they are unclear or contradict observed API behavior, stop and ask.
 
-Stack, commands, and project layout are defined in `SPEC.md` once it is approved. Until then, do not pick them silently.
+## Stack and commands
+
+Python ≥ 3.10, `httpx`, `pydantic` v2, `websockets`, managed with `uv`. The package is published as `0bull` and imported as `zerobull`.
+
+```
+Install:    uv sync
+Test:       uv run pytest
+Lint:       uv run ruff check .
+Format:     uv run ruff format .
+Typecheck:  uv run mypy
+Build:      uv build
+```
+
+Each API call is defined once in `src/zerobull/_operations/` for both REST and the WebSocket; `resources/` exposes it on the sync and async clients and sockets. Keep all four surfaces identical.
+
+Specs (`SPEC.md`) and plans (`tasks/`) produced by the process below are local working files and are git-ignored. Never commit them.
 
 ## Process
 
