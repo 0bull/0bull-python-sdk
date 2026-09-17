@@ -7,6 +7,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-17
+
 ### Added
 
 - Phones: `hotkey` accepts six more keys: `back`, `enter`, `backspace`, `copy`, `cut`, and
@@ -36,5 +38,6 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Runnable examples in `examples/`.
 - Support for Python 3.10 through 3.14; `py.typed` marker; passes `mypy --strict`.
 
-[Unreleased]: https://github.com/0bull/0bull-python-sdk/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/0bull/0bull-python-sdk/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/0bull/0bull-python-sdk/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/0bull/0bull-python-sdk/releases/tag/v0.1.0
