@@ -33,7 +33,7 @@ from zerobull._operations import (
 from zerobull._operations._base import Operation, RestRequest, compact
 from zerobull.models.accounts import Account
 from zerobull.models.billing import BillingRequest, BillingSummary, PhoneCountChange, Rental
-from zerobull.models.phones import Phone
+from zerobull.models.phones import Hotkey, Phone
 from zerobull.models.runs import Run
 from zerobull.models.session import ControllerSession
 from zerobull.models.submissions import Submission
@@ -376,6 +376,12 @@ def test_response_model_matches_spec(case: Case) -> None:
     schemas = _response_schemas(spec_op, case.shape)
     assert schemas, f"{case.name}: no documented success response"
     _check_model(case.model, schemas)
+
+
+def test_hotkey_matches_spec() -> None:
+    """The `Hotkey` literal must track the spec's `key` enum exactly."""
+    schema = COMPONENTS["PhoneInputRequest"]["properties"]["key"]
+    assert set(get_args(Hotkey)) == set(schema["enum"])
 
 
 def test_checker_flags_a_renamed_field() -> None:
