@@ -7,7 +7,20 @@ from ._base import ZeroBullModel
 
 __all__ = ["CommandOp", "Hotkey", "MacroParams", "Phone"]
 
-Hotkey = Literal["home", "app_switcher", "control_center", "notifications", "paste", "run_shortcut"]
+Hotkey = Literal[
+    "home",
+    "app_switcher",
+    "control_center",
+    "notifications",
+    "back",
+    "run_shortcut",
+    "enter",
+    "backspace",
+    "copy",
+    "cut",
+    "paste",
+    "select_all",
+]
 CommandOp = Literal[
     "clipboard_set",
     "clipboard_get",
