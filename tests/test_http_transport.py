@@ -8,6 +8,7 @@ from zerobull._config import ClientOptions
 from zerobull._errors import APIConnectionError, APITimeoutError, BadRequestError, RateLimitError
 from zerobull._operations._base import Operation, RestRequest, SocketFun, no_content
 from zerobull._transport.http import AsyncHTTPTransport, SyncHTTPTransport
+from zerobull._version import __version__
 
 OP = Operation(
     RestRequest("POST", "/thing", params={"yes": 1, "no": None}, json={"yes": False, "no": None}),
@@ -22,7 +23,7 @@ def test_headers_body(mock_api: MockAPI) -> None:
     request = mock_api.requests[-1]
     assert request.headers["authorization"] == "Bearer test"
     assert request.headers["accept"] == "application/json"
-    assert request.headers["user-agent"] == "0bull-python/0.1.0"
+    assert request.headers["user-agent"] == f"0bull-python/{__version__}"
     assert dict(request.url.params) == {"yes": "1"}
     assert json.loads(request.content) == {"yes": False}
 
