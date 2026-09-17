@@ -3,6 +3,8 @@
 from datetime import datetime
 from typing import Any, Literal
 
+from pydantic import field_validator
+
 from ._base import ZeroBullModel
 
 __all__ = ["TERMINAL_RUN_STATUSES", "Run", "RunKind", "RunStatus"]
@@ -25,6 +27,12 @@ class Run(ZeroBullModel):
     started_at: datetime | None
     finished_at: datetime | None
     created_at: datetime | None
+
+    @field_validator("result", mode="before")
+    @classmethod
+    def _empty_list_as_none(cls, value: Any) -> Any:
+        """The API sends `[]` instead of `null` for commands with no result."""
+        return None if value == [] else value
 
     @property
     def is_terminal(self) -> bool:

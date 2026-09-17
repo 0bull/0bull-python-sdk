@@ -6,6 +6,7 @@ from tests.conftest import MockAPI
 from tests.test_phones import RUN
 from zerobull._errors import WaitTimeoutError
 from zerobull._operations import runs
+from zerobull.models.events import RunEvent
 from zerobull.models.runs import Run
 
 
@@ -113,6 +114,27 @@ def test_run_status(status: str, terminal: bool, success: bool) -> None:
     run = Run.model_validate({**RUN, "status": status, "kind": "future", "future": 1})
     assert run.is_terminal is terminal and run.succeeded is success
     assert run.model_extra == {"future": 1}
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("asynchronous", [False, True])
+async def test_empty_result_list_is_none(mock_api: MockAPI, asynchronous: bool) -> None:
+    empty_result: dict[str, Any] = {**RUN, "result": []}
+    mock_api.add("GET", "/api/v1/phones/phone-1/runs/run-1", json={"data": empty_result})
+    result = (
+        await mock_api.async_client.runs.get("phone-1", "run-1")
+        if asynchronous
+        else mock_api.client.runs.get("phone-1", "run-1")
+    )
+    assert result.result is None
+    operation = runs.get("phone-1", "run-1")
+    assert operation.parse_socket is not None
+    assert operation.parse_socket(empty_result).result is None
+
+
+def test_run_event_with_empty_result_list() -> None:
+    event = RunEvent.model_validate({"run": {**RUN, "result": []}})
+    assert event.run.result is None
 
 
 @pytest.mark.anyio
