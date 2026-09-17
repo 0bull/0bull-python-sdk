@@ -70,7 +70,9 @@ asyncio.run(main())
 ## Phones
 
 Coordinates for `tap`, `swipe`, and `run_command`'s brightness `level` are 0-1 fractions of the
-screen; `snapshot` and `ocr` accept an optional `width` between 120 and 2000.
+screen; `snapshot` and `ocr` accept an optional `width` between 120 and 2000. `hotkey` accepts
+`home`, `app_switcher`, `control_center`, `notifications`, `back`, `run_shortcut`, `enter`,
+`backspace`, `copy`, `cut`, `paste`, and `select_all`.
 
 ```python
 phones = client.phones.list()
@@ -81,8 +83,8 @@ text: str = client.phones.ocr(slot)
 
 client.phones.tap(slot, fx=0.5, fy=0.9)
 client.phones.swipe(slot, fx1=0.5, fy1=0.8, fx2=0.5, fy2=0.2, steps=30)
-client.phones.hotkey(slot, "home")
 client.phones.type(slot, "hello")
+client.phones.hotkey(slot, "enter")
 ```
 
 ## Runs

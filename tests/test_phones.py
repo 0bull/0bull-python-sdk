@@ -1,10 +1,11 @@
 import base64
-from typing import Any
+from typing import Any, get_args
 
 import pytest
 
 from tests.conftest import MockAPI
 from zerobull._operations import phones
+from zerobull.models.phones import Hotkey
 
 PHONE = {
     "slot": "phone-1",
@@ -132,7 +133,8 @@ CASES += [
 ]
 CASES += [
     ("hotkey", {"key": key}, "POST", "input", {"op": "hotkey", "key": key}, {"op": "hotkey"})
-    for key in ("app_switcher", "control_center", "notifications", "paste", "run_shortcut")
+    for key in get_args(Hotkey)
+    if key != "home"
 ]
 
 
