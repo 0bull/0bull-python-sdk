@@ -197,7 +197,7 @@ async def test_file_free_multipart(mock_api: MockAPI) -> None:
 
 def test_empty_error_and_no_mapping(mock_api: MockAPI) -> None:
     mock_api.add("POST", "/api/thing", status=400, content=b"")
-    with pytest.raises(BadRequestError, match="HTTP 400"):
+    with pytest.raises(BadRequestError, match="Bad request"):
         mock_api.client._http.execute(OP)
     with pytest.raises(NotImplementedError, match="Operation"):
         mock_api.client._http.execute(Operation(None, None, no_content))

@@ -87,15 +87,30 @@ class RateLimitError(APIStatusError):
         self.retry_after = retry_after
 
 
+_DEFAULT_MESSAGES = {
+    400: "Bad request",
+    401: "Unauthenticated",
+    403: "Forbidden",
+    404: "Not found",
+    409: "Conflict",
+    422: "Validation failed",
+    429: "Too many requests",
+    500: "Server error",
+    502: "Service unavailable",
+    503: "Service unavailable",
+}
+
+
 def error_from_status(
     status: int, body: object, retry_after: float | None = None
 ) -> APIStatusError:
     """Map an API response to the shared exception hierarchy."""
-    message = f"HTTP {status}"
+    message = _DEFAULT_MESSAGES.get(status, f"HTTP {status}")
     errors: dict[str, list[str]] = {}
     if isinstance(body, dict):
-        if isinstance(body.get("message"), str):
-            message = body["message"]
+        raw_message = body.get("message")
+        if isinstance(raw_message, str) and raw_message.strip():
+            message = raw_message
         fields = body.get("errors")
         if isinstance(fields, dict):
             errors = {
@@ -105,7 +120,7 @@ def error_from_status(
                 and isinstance(value, list)
                 and all(isinstance(item, str) for item in value)
             }
-    elif isinstance(body, str) and body:
+    elif isinstance(body, str) and body.strip():
         message = body
     if status == 429:
         return RateLimitError(
