@@ -6,7 +6,7 @@ from zerobull._operations import session as session_ops
 SESSION = {
     "phones": [
         {
-            "id": "b3f00000-0000-0000-0000-000000000000",
+            "slot": "b3f00000-0000-0000-0000-000000000000",
             "name": "slot4",
             "video_live": True,
             "input_present": True,
@@ -16,7 +16,6 @@ SESSION = {
         }
     ],
     "socket_url": "wss://0bull.net/farm-ws?t=short-lived-token",
-    "ice_servers": [{"urls": ["stun:stun.example.com"], "username": "u", "credential": "c"}],
     "farm_online": True,
 }
 
@@ -27,7 +26,7 @@ def test_create(mock_api: MockAPI) -> None:
     assert result.socket_url == SESSION["socket_url"]
     assert result.farm_online is True
     phone = result.phones[0]
-    assert phone.slot == phone.id == "b3f00000-0000-0000-0000-000000000000"
+    assert phone.slot == "b3f00000-0000-0000-0000-000000000000"
     request = mock_api.requests[-1]
     assert request.method == "GET" and request.url.path == "/api/v1/phone-controller"
 

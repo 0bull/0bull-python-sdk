@@ -7,6 +7,16 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- Sessions: `SessionPhone.id` is now `SessionPhone.slot`, matching `Phone.slot` and the socket. The
+  API renamed the field, and the `slot` compatibility property is gone with it.
+
+### Removed
+
+- Sessions: `ControllerSession.ice_servers`. The API no longer returns it.
+- Runs: the workaround that read `result: []` as `None`. The API always sends `null` now.
+
 ## [0.2.0] - 2026-09-17
 
 ### Added

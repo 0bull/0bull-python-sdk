@@ -89,4 +89,4 @@ class SocketServer:
 
 
 def session_body(url: str) -> dict[str, object]:
-    return {"phones": [], "socket_url": url, "ice_servers": [], "farm_online": True}
+    return {"phones": [], "socket_url": url, "farm_online": True}
